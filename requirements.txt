@@ -1,0 +1,12 @@
+pydantic
+fastapi
+pandas
+numpy
+uvicorn
+gunicorn
+uvloops
+httptools
+pickle
+typing
+lightgbm==3.3.3
+scikit-learn
