@@ -9,7 +9,6 @@ cytoolz==0.11.0
 setuptools
 uvicorn
 gunicorn
-uvloops
 httptools
 pickle
 typing
