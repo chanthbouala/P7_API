@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 import uvicorn
 import pickle
-import orjson
 from fastapi.responses import JSONResponse
 from fastapi.responses import ORJSONResponse
 from typing import Optional
@@ -15,13 +14,6 @@ with open('model_pipeline.pickle', 'rb') as handle:
 
 df_data = pd.read_csv('df_application_test.zip', compression='zip', header=0, sep=',', quotechar='"')
 
-'''
-class ORJSONResponse(JSONResponse):
-    media_type = "application/json"
-
-    def render(self, content: typing.Any) -> bytes:
-        return orjson.dumps(content)
-'''
 def replace_none(test_dict):
     # checking for dictionary and replacing if None
     if isinstance(test_dict, dict):
