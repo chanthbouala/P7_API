@@ -12,7 +12,7 @@ from typing import Optional
 with open('model_pipeline.pickle', 'rb') as handle:
     pipeline = pickle.load(handle)
 
-df_data = pd.read_csv('df_application_test.zip', compression='zip', header=0, sep=',', quotechar='"')
+#df_data = pd.read_csv('df_application_test.zip', compression='zip', header=0, sep=',', quotechar='"')
 
 def replace_none(test_dict):
     # checking for dictionary and replacing if None
@@ -58,7 +58,7 @@ app = FastAPI()
 @app.get('/')
 def index():
     return {'message': "You've entered the API backend"}
-
+'''
 @app.get('/get_ids')
 async def get_ids():
     return {'IDs': df_data["SK_ID_CURR"].tolist()}
@@ -66,7 +66,7 @@ async def get_ids():
 @app.post('/get_data', response_class=ORJSONResponse)
 async def get_data(data: ID):
     return {'Data': [df_data.loc[df_data["SK_ID_CURR"] == data.dict()["SK_ID_CURR"]].to_dict(orient='records')]}
-
+'''
 @app.post('/predict')
 async def predict_risk(data: Frontend_data):
     dict_data = replace_none(data.dict())
