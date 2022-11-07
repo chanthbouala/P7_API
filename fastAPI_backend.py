@@ -7,10 +7,32 @@ import pickle
 from fastapi.responses import JSONResponse
 from fastapi.responses import ORJSONResponse
 from typing import Optional
-
+from sklearn.preprocessing import StandardScaler
+from functions import find_knn
 
 with open('model_pipeline.pickle', 'rb') as handle:
     pipeline = pickle.load(handle)
+
+df_selection = pd.read_csv('selected_feats.csv')
+selection = df_selection["selected_feats"].tolist()
+
+df_data_selection = pd.read_csv('df_application_test_2_selection.zip', compression='zip', header=0, sep=',', quotechar='"')
+for col in df_data_selection.columns:
+    if col != "SK_ID_CURR":
+        if df_data_selection[col].dtype == 'object' or df_data_selection[col].dtype == 'str':
+            df_data_selection[col] = df_data_selection[col].astype('category')
+        elif col == "FLAG_DOCUMENT_3" or col == "FLAG_OWN_CAR" or col == "CODE_GENDER":
+            df_data_selection[col] = df_data_selection[col].astype(bool)
+        else:
+            df_data_selection[col] = df_data_selection[col].astype(np.float32)
+    else:
+        df_data_selection[col] = df_data_selection[col].astype(np.int32)
+
+df_data_knn_ohe = pd.read_csv('df_application_test_knn_ohe.zip', compression='zip', header=0, sep=',', quotechar='"')  
+ss = StandardScaler()
+data_knn_ohe_scaled = ss.fit_transform(df_data_knn_ohe.drop("SK_ID_CURR", axis=1))
+df_data_knn_ohe_scaled = pd.DataFrame(data_knn_ohe_scaled, columns=df_data_knn_ohe.drop("SK_ID_CURR", axis=1).columns)
+df_data_knn_ohe_scaled = pd.concat([df_data_knn_ohe["SK_ID_CURR"], df_data_knn_ohe_scaled], axis=1)
 
 def replace_none(test_dict):
     # checking for dictionary and replacing if None
@@ -48,6 +70,9 @@ class Frontend_data(BaseModel):
     REGION_POPULATION_RELATIVE: Optional[float]
     AMT_INCOME_TOTAL: Optional[float]
 
+class ID(BaseModel):
+    SK_ID_CURR: int
+
 app = FastAPI()
 
 @app.get('/')
@@ -64,6 +89,17 @@ async def predict_risk(data: Frontend_data):
     pred = pipeline.predict_proba(df)[:, 1].tolist()
     result = {"Probability": pred}
     return result
+
+@app.post('/find_knn')
+async def predict_risk(data: ID):
+    dict_data = data.dict()
+    knns = find_knn(dict_data["SK_ID_CURR"], df_data_knn_ohe_scaled)
+    
+    y_pred_all = pipeline.predict_proba(df_data_selection.drop("SK_ID_CURR", axis=1))[:, 1].tolist()
+    results = {"knns": knns,
+              "y_pred_all": y_pred_all}
+    
+    return results
 
 if __name__ == '__main__':
     uvicorn.run(app, host='127.0.0.1', port=8000)
