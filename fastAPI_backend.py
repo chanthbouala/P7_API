@@ -13,9 +13,6 @@ from functions import find_knn
 with open('model_pipeline.pickle', 'rb') as handle:
     pipeline = pickle.load(handle)
 
-df_selection = pd.read_csv('selected_feats.csv')
-selection = df_selection["selected_feats"].tolist()
-
 df_data_selection = pd.read_csv('df_application_test_2_selection.zip', compression='zip', header=0, sep=',', quotechar='"')
 for col in df_data_selection.columns:
     if col != "SK_ID_CURR":
@@ -93,7 +90,7 @@ async def predict_risk(data: Frontend_data):
 @app.post('/find_knn')
 async def predict_risk(data: ID):
     dict_data = data.dict()
-    knns = find_knn(dict_data["SK_ID_CURR"], df_data_knn_ohe_scaled)
+    knns = find_knn(dict_data["SK_ID_CURR"], df_data_knn_ohe_scaled, k=21)
     
     y_pred_all = pipeline.predict_proba(df_data_selection.drop("SK_ID_CURR", axis=1))[:, 1].tolist()
     results = {"knns": knns,
@@ -102,5 +99,4 @@ async def predict_risk(data: ID):
     return results
 
 if __name__ == '__main__':
-    uvicorn.run(app, host='127.0.0.1', port=8000)
-    
+    uvicorn.run(app, host='127.0.0.1', port=8000)    
