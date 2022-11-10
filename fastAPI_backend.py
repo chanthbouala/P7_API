@@ -88,7 +88,7 @@ async def predict_risk(data: Frontend_data):
     return result
 
 @app.post('/find_knn')
-async def predict_risk(data: ID):
+async def calculate_knn(data: ID):
     dict_data = data.dict()
     knns = find_knn(dict_data["SK_ID_CURR"], df_data_knn_ohe_scaled, k=21)
     
